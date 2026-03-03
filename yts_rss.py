@@ -7,7 +7,7 @@ async def fetch_and_post_yts_feeds():
     """Fetch YTS RSS feeds and post new items to Telegram"""
     try:
         # Fetch RSS feed
-        feed = feedparser.parse("https://yts.mx/rss/")
+        feed = feedparser.parse("https://yts.bz/rss/")
         if not feed.entries:
             print("No entries found in the YTS RSS feed.")
             return
