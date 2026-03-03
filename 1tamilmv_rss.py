@@ -1,50 +1,51 @@
 import feedparser
 import asyncio
-import re
 from telegram.constants import ParseMode
 from config import bot, CHAT_ID, downloaded_items_tg
 
 
-async def fetch_and_post_1tamilmv_feeds():
-    """Fetch 1TamilMV RSS feeds and post new items to Telegram"""
+async def fetch_and_post_torrentgalaxy_feeds():
+    """Fetch Pornrips RSS feeds and post new items to Telegram"""
     try:
+        # Fetch RSS feed
         feed = feedparser.parse("https://www.1tamilmv.gs/rss")
-
         if not feed.entries:
-            print("No entries found in the 1TamilMV RSS feed.")
+            print("No entries found in the Pornrips RSS feed.")
             return
 
+        # Process each feed entry
         for item in feed.entries:
             title = item.get("title", "No Title")
             link = item.get("link", "")
-            summary = item.get("summary", "")
+            torrent_file = None
 
-            # 🧲 MAGNET extract
-            magnet = None
-            magnet_match = re.search(r'href="(magnet:\?xt=.*?)"', summary)
-            if magnet_match:
-                magnet = magnet_match.group(1)
+            # Find torrent file link
+            if "links" in item:
+                for link_item in item.links:
+                    href = link_item.get("href", "")
+                    if href.endswith(".torrent"):
+                        torrent_file = href
 
-            if not magnet:
+            # Skip if already posted
+            if link in downloaded_items_tg:
                 continue
 
-            # 🎞 Quality extract
-            quality = "HDRip"
-            q_match = re.search(r'(480p|720p|1080p|2160p|4K)', title, re.I)
-            if q_match:
-                quality = q_match.group(1)
+            # 📩 Construct message
+            message = f"🎥 <b>{title}</b>\n\n"
 
-            # Duplicate check
-            if magnet in downloaded_items_tg:
-                continue
-
-            # 📨 Telegram Message
-            message = (
-                f"🎬 <b>[{quality}] {title}</b>\n\n"
-                f"🧲 <b>MAGNET:</b>\n<code>{magnet}</code>\n\n"
-                f"🌐 https://tghubfile.pages.dev"
+            # Torrent file link
+            message += (
+                f"🔗 <b>Torrent File:</b> "
+                f"<a href='{link}'>Pornrips</a>\n\n"
             )
 
+            # Magnet (same as existing logic)
+            message += f"🧲 <b>Magnet Link:</b>\n<code>{link}</code>\n\n"
+
+            # 🔥 UPDATE CHANNEL / BRANDING (FORCED)
+            message += "🌐 <b>Source:</b> https://tghubfile.pages.dev"
+
+            # Send message to Telegram
             await bot.send_message(
                 chat_id=CHAT_ID,
                 text=message,
@@ -52,8 +53,8 @@ async def fetch_and_post_1tamilmv_feeds():
                 disable_web_page_preview=True
             )
 
-            downloaded_items_tg.add(magnet)
+            downloaded_items_tg.add(link)
             await asyncio.sleep(1)
 
     except Exception as e:
-        print(f"Error in 1TamilMV feed handling: {e}")
+        print(f"Error in Pornrips feed handling: {e}")
