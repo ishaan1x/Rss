@@ -3,6 +3,7 @@ import asyncio
 from telegram.constants import ParseMode
 from config import bot, CHAT_ID, downloaded_items_yts
 
+
 async def fetch_and_post_yts_feeds():
     """Fetch YTS RSS feeds and post new items to Telegram"""
     try:
@@ -19,19 +20,38 @@ async def fetch_and_post_yts_feeds():
             magnet_link = item.links[1].href if len(item.links) > 1 else None
             torrent_file = item.enclosures[0].href if item.enclosures else None
 
-            if link not in downloaded_items_yts:
-                # Construct message
-                message = f"🎥 <b>{title}</b>\n\n"
-                if torrent_file:
-                    message += f"🔗 <b>Torrent File:</b> <a href='{torrent_file}'>Download</a>\n"
-                if magnet_link:
-                    message += f"🧲 <b>Magnet Link:</b>\n<code>{magnet_link}</code>\n\n"
-                    message += f"🌐 <b>Source:</b> <a href='{link}'>YTS</a>"
+            # Duplicate check
+            if link in downloaded_items_yts:
+                continue
 
-                # Send message to Telegram
-                await bot.send_message(chat_id=CHAT_ID, text=message, parse_mode=ParseMode.HTML)
-                downloaded_items_yts.add(link)
-                await asyncio.sleep(1)
+            # 📩 Construct message
+            message = f"🎥 <b>{title}</b>\n\n"
+
+            if torrent_file:
+                message += (
+                    f"🔗 <b>Torrent File:</b> "
+                    f"<a href='{torrent_file}'>Download</a>\n\n"
+                )
+
+            if magnet_link:
+                message += (
+                    f"🧲 <b>Magnet Link:</b>\n"
+                    f"<code>{magnet_link}</code>\n\n"
+                )
+
+            # 🔥 YOUR BRAND / UPDATE CHANNEL (FORCED)
+            message += "🌐 <b>Source:</b> https://tghubfile.pages.dev"
+
+            # Send message to Telegram
+            await bot.send_message(
+                chat_id=CHAT_ID,
+                text=message,
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True
+            )
+
+            downloaded_items_yts.add(link)
+            await asyncio.sleep(1)
 
     except Exception as e:
         print(f"Error in YTS feed handling: {e}")
